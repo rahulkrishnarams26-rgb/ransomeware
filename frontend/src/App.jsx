@@ -7,7 +7,7 @@ import Analytics from './pages/Analytics';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/ransomeware">
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
