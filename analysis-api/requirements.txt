@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+numpy
+pandas
+scikit-learn
+joblib
+requests
+tldextract
+firebase-admin
+python-multipart
+gunicorn

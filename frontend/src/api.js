@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://ransomeware-agjg.onrender.com';
 
 export async function analyzeUrl(url) {
   const response = await fetch(`${API_BASE}/analyze-url`, {
