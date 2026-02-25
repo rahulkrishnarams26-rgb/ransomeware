@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore';
 
 const ThreatLevelBadge = ({ level }) => {
   const styles = {
@@ -23,8 +25,15 @@ export default function ScanHistory() {
 
   useEffect(() => {
     const fetchHistory = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      
       try {
-        const q = query(collection(db, 'url_scans'), orderBy('createdAt', 'desc'));
+        const q = query(
+          collection(db, 'url_scans'),
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc')
+        );
         const snapshot = await getDocs(q);
         const history = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setScans(history);
@@ -34,7 +43,12 @@ export default function ScanHistory() {
         setLoading(false);
       }
     };
-    fetchHistory();
+    
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) fetchHistory();
+    });
+    
+    return () => unsubscribe();
   }, []);
 
   const handleDelete = async (id) => {

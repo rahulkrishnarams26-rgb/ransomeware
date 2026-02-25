@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { auth } from '../firebase';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { analyzeUrl } from '../api';
@@ -55,6 +56,12 @@ export default function URLScanner() {
     e.preventDefault();
     if (!url.trim()) return;
     
+    const user = auth.currentUser;
+    if (!user) {
+      setError('Please sign in to save scans.');
+      return;
+    }
+    
     setLoading(true);
     setError('');
     setResult(null);
@@ -63,8 +70,7 @@ export default function URLScanner() {
       const analysisResult = await analyzeUrl(url);
       setResult(analysisResult);
       
-      console.log('Saving to Firestore...');
-      const docRef = await addDoc(collection(db, 'url_scans'), {
+      await addDoc(collection(db, 'url_scans'), {
         url: analysisResult.url,
         threatScore: analysisResult.threatScore,
         threatLevel: analysisResult.threatLevel,
@@ -72,12 +78,13 @@ export default function URLScanner() {
         indicators: analysisResult.indicators,
         recommendation: analysisResult.recommendation,
         safeToVisit: analysisResult.safeToVisit,
+        userId: user.uid,
+        userEmail: user.email,
         createdAt: new Date().toISOString()
       });
-      console.log('Saved to Firestore with ID:', docRef.id);
     } catch (err) {
-      console.error('Error saving to Firestore:', err);
-      setError('Failed to analyze URL. Please check if the backend is running. ' + err.message);
+      console.error('Error:', err);
+      setError('Failed to analyze URL. Please check if the backend is running.');
     } finally {
       setLoading(false);
     }

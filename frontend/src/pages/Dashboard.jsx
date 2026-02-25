@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const COLORS = {
@@ -30,8 +32,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      
       try {
-        const q = query(collection(db, 'url_scans'), orderBy('createdAt', 'desc'));
+        const q = query(
+          collection(db, 'url_scans'), 
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc')
+        );
         const snapshot = await getDocs(q);
         const scans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
@@ -48,7 +57,12 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-    fetchData();
+    
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) fetchData();
+    });
+    
+    return () => unsubscribe();
   }, []);
 
   const pieData = [
