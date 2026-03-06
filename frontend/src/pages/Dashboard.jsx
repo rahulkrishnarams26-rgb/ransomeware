@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { db } from '../firebase';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const COLORS = {
@@ -25,44 +24,91 @@ const ThreatLevelBadge = ({ level }) => {
   );
 };
 
+const StatCard = ({ title, value, color, icon }) => (
+  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-slate-500 text-sm">{title}</p>
+        <p className="text-3xl font-bold mt-1" style={{ color }}>{value}</p>
+      </div>
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center`} style={{ backgroundColor: `${color}15` }}>
+        <svg className="w-6 h-6" style={{ color }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+        </svg>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Dashboard() {
+  console.log('DASHBOARD: Component rendering');
   const [analytics, setAnalytics] = useState({ totalScans: 0, safeCount: 0, suspiciousCount: 0, highRiskCount: 0 });
   const [recentScans, setRecentScans] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      
-      try {
-        const q = query(
-          collection(db, 'url_scans'), 
-          where('userId', '==', user.uid),
-          orderBy('createdAt', 'desc')
-        );
-        const snapshot = await getDocs(q);
-        const scans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        const total = scans.length;
-        const safe = scans.filter(s => s.threatLevel === 'Safe').length;
-        const suspicious = scans.filter(s => s.threatLevel === 'Suspicious').length;
-        const highRisk = scans.filter(s => s.threatLevel === 'High Risk').length;
-        
-        setAnalytics({ totalScans: total, safeCount: safe, suspiciousCount: suspicious, highRiskCount: highRisk });
-        setRecentScans(scans.slice(0, 10));
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    console.log('DASHBOARD: useEffect running');
+    let isMounted = true;
     
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) fetchData();
+      console.log('DASHBOARD: Auth changed, user:', user ? user.uid : null);
+      
+      if (!user) {
+        console.log('DASHBOARD: No user, setting loading false');
+        if (isMounted) setLoading(false);
+        return;
+      }
+      
+      const fetchData = async () => {
+        console.log('DASHBOARD: Fetching data for:', user.uid);
+        
+        try {
+          console.log('DASHBOARD: Creating query...');
+          const q = query(
+            collection(db, 'url_scans'), 
+            where('userId', '==', user.uid)
+          );
+          console.log('DASHBOARD: Getting docs...');
+          const snapshot = await getDocs(q);
+          console.log('DASHBOARD: Docs count:', snapshot.size);
+          let scans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          
+          console.log('DASHBOARD: Scans:', scans.length);
+          
+          scans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          
+          const total = scans.length;
+          const safe = scans.filter(s => s.threatLevel === 'Safe').length;
+          const suspicious = scans.filter(s => s.threatLevel === 'Suspicious').length;
+          const highRisk = scans.filter(s => s.threatLevel === 'High Risk').length;
+          
+          console.log('DASHBOARD: Setting state - total:', total, 'safe:', safe, 'suspicious:', suspicious, 'highRisk:', highRisk);
+          
+          if (isMounted) {
+            setAnalytics({ totalScans: total, safeCount: safe, suspiciousCount: suspicious, highRiskCount: highRisk });
+            setRecentScans(scans.slice(0, 10));
+            console.log('DASHBOARD: State set, setting loading false');
+            setLoading(false);
+            console.log('DASHBOARD: loading should be false now');
+          }
+        } catch (error) {
+          console.error('DASHBOARD: Error:', error);
+          if (isMounted) {
+            setAnalytics({ totalScans: 0, safeCount: 0, suspiciousCount: 0, highRiskCount: 0 });
+            setRecentScans([]);
+            setLoading(false);
+          }
+        }
+      };
+      
+      fetchData();
     });
     
-    return () => unsubscribe();
+    return () => {
+      console.log('DASHBOARD: Cleanup');
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const pieData = [
@@ -89,22 +135,6 @@ export default function Dashboard() {
     { name: 'Suspicious', count: analytics.suspiciousCount, fill: COLORS.suspicious },
     { name: 'High Risk', count: analytics.highRiskCount, fill: COLORS.highRisk }
   ];
-
-  const StatCard = ({ title, value, color, icon }) => (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-slate-500 text-sm">{title}</p>
-          <p className="text-3xl font-bold mt-1" style={{ color }}>{value}</p>
-        </div>
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center`} style={{ backgroundColor: `${color}15` }}>
-          <svg className="w-6 h-6" style={{ color }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
 
   if (loading) {
     return (

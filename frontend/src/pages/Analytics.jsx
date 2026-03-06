@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 
 const COLORS = {
@@ -19,38 +19,56 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchData = async () => {
       const user = auth.currentUser;
-      if (!user) return;
+      if (!user) {
+        if (isMounted) setLoading(false);
+        return;
+      }
       
       try {
         const q = query(
           collection(db, 'url_scans'),
-          where('userId', '==', user.uid),
-          orderBy('createdAt', 'desc')
+          where('userId', '==', user.uid)
         );
         const snapshot = await getDocs(q);
-        const scans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let scans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        scans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
         const total = scans.length;
         const safe = scans.filter(s => s.threatLevel === 'Safe').length;
         const suspicious = scans.filter(s => s.threatLevel === 'Suspicious').length;
         const highRisk = scans.filter(s => s.threatLevel === 'High Risk').length;
         
-        setAnalytics({ totalScans: total, safeCount: safe, suspiciousCount: suspicious, highRiskCount: highRisk });
-        setScanHistory(scans);
+        if (isMounted) {
+          setAnalytics({ totalScans: total, safeCount: safe, suspiciousCount: suspicious, highRiskCount: highRisk });
+          setScanHistory(scans);
+        }
       } catch (error) {
         console.error('Failed to fetch analytics:', error);
+        if (isMounted) {
+          setAnalytics({ totalScans: 0, safeCount: 0, suspiciousCount: 0, highRiskCount: 0 });
+          setScanHistory([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) fetchData();
+      else if (isMounted) setLoading(false);
     });
     
-    return () => unsubscribe();
+    fetchData();
+    
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const threatDistribution = [

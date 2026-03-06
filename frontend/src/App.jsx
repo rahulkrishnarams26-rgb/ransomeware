@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import URLScanner from './pages/URLScanner';
 import ScanHistory from './pages/ScanHistory';
 import Analytics from './pages/Analytics';
+import Learn from './pages/Learn';
 
 function ProtectedRoute({ children }) {
   const [user, setUser] = useState(null);
@@ -38,20 +39,19 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
-          path="/*"
+          path="/"
           element={
             <ProtectedRoute>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/scanner" element={<URLScanner />} />
-                  <Route path="/history" element={<ScanHistory />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                </Routes>
-              </Layout>
+              <Layout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="scanner" element={<URLScanner />} />
+          <Route path="history" element={<ScanHistory />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="learn" element={<Learn />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

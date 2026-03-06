@@ -91,17 +91,17 @@ export default function URLScanner() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-slide-up">
+    <div className="max-w-4xl mx-auto space-y-4 md:space-y-6 animate-slide-up">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-slate-800">URL Threat Scanner</h2>
-        <p className="text-slate-500 mt-1">Analyze URLs for ransomware and malware indicators</p>
+        <h2 className="text-xl md:text-2xl font-bold text-slate-800">URL Threat Scanner</h2>
+        <p className="text-slate-500 mt-1 text-sm md:text-base">Analyze URLs for ransomware and malware indicators</p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-white border border-slate-200 rounded-xl p-4 md:p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="absolute inset-y-0 left-0 pl-3 md:pl-4 flex items-center pointer-events-none">
+              <svg className="w-4 h-4 md:w-5 md:h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -109,23 +109,23 @@ export default function URLScanner() {
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="Enter URL to analyze (e.g., https://example.com/login)"
-              className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+              placeholder="Enter URL to analyze"
+              className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-3 md:py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
             />
           </div>
           <button
             type="submit"
             disabled={loading || !url.trim()}
-            className="w-full py-4 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 md:py-4 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 text-sm md:text-base"
           >
             {loading ? (
               <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Analyzing URL...
+                <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Analyzing...
               </>
             ) : (
               <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Analyze URL
@@ -145,28 +145,28 @@ export default function URLScanner() {
       )}
 
       {result && (
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           <ThreatIndicator score={result.threatScore} level={result.threatLevel} />
 
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 md:p-6 shadow-sm">
+            <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
               <div className={`w-3 h-3 rounded-full ${
                 result.safeToVisit ? 'bg-green-500' : 'bg-red-500'
               }`}></div>
-              <span className={`font-semibold ${
+              <span className={`font-semibold text-sm md:text-base ${
                 result.safeToVisit ? 'text-green-600' : 'text-red-600'
               }`}>
                 {result.safeToVisit ? 'Safe to Visit' : 'Dangerous - Do Not Visit'}
               </span>
             </div>
-            <p className="text-slate-600">{result.recommendation}</p>
-            <div className="mt-4 text-sm text-slate-500">
+            <p className="text-slate-600 text-sm md:text-base">{result.recommendation}</p>
+            <div className="mt-3 md:mt-4 text-xs md:text-sm text-slate-500">
               Confidence: <span className="text-blue-600 font-medium">{result.confidence}</span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Threat Indicators</h3>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 md:p-6 shadow-sm">
+            <h3 className="text-base md:text-lg font-semibold text-slate-800 mb-3 md:mb-4">Threat Indicators</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {result.indicators.map((indicator, idx) => (
                 <IndicatorBadge 
@@ -179,9 +179,9 @@ export default function URLScanner() {
           </div>
 
           {result.features && (
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">URL Features Analysis</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 md:p-6 shadow-sm">
+              <h3 className="text-base md:text-lg font-semibold text-slate-800 mb-3 md:mb-4">URL Features Analysis</h3>
+              <div className="grid grid-cols-2 gap-2 md:gap-4">
                 <div className="bg-slate-50 rounded-lg p-3">
                   <p className="text-slate-500 text-xs">URL Length</p>
                   <p className="text-slate-800 font-semibold">{result.features.url_length}</p>
@@ -220,8 +220,8 @@ export default function URLScanner() {
         </div>
       )}
 
-      <div className="bg-slate-50 border border-slate-200 rounded-xl p-6">
-        <h3 className="text-sm font-semibold text-slate-500 mb-3">Sample URLs to Test</h3>
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 md:p-6">
+        <h3 className="text-sm md:text-base font-semibold text-slate-500 mb-2 md:mb-3">Sample URLs to Test</h3>
         <div className="flex flex-wrap gap-2">
           {[
             'https://google.com',
@@ -233,9 +233,9 @@ export default function URLScanner() {
             <button
               key={idx}
               onClick={() => setUrl(sampleUrl)}
-              className="px-3 py-1 bg-white hover:bg-slate-100 text-slate-600 text-sm rounded-lg border border-slate-200 transition-colors"
+              className="px-2 md:px-3 py-1 bg-white hover:bg-slate-100 text-slate-600 text-xs md:text-sm rounded-lg border border-slate-200 transition-colors"
             >
-              {sampleUrl.length > 40 ? sampleUrl.substring(0, 40) + '...' : sampleUrl}
+              {sampleUrl.length > 25 ? sampleUrl.substring(0, 25) + '...' : sampleUrl}
             </button>
           ))}
         </div>
