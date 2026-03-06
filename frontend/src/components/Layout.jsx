@@ -90,14 +90,14 @@ export default function Layout() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
+                `flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-blue-50 text-blue-600 border border-blue-200'
                     : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100'
                 }`
               }
             >
-              <svg className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 md:w-4 md:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
               </svg>
               <span className="hidden md:inline">{item.label}</span>
